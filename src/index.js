@@ -12,11 +12,8 @@ const server = require("http").Server(app);
 const io = require("socket.io")(server);
 
 app.use(cookieParser());
-app.use(helmet());
-app.use(cors({
-  preflightContinue: true,
-  origin: process.env.FRONTEND_URL,
-}))
+// app.use(helmet());
+app.use(cors())
 // var allowedOrigins = [
 //   "http://localhost:3000",
 //   "https://portal-tricordiano.vercel.app/",
