@@ -5,13 +5,15 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const User = require("../Models/User");
 const Product = require("../Models/Product");
 
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
 module.exports = {
   async clientSecret(req, res, next) {
     const { userID } = req;
 
-    console.log(userID)
+    console.log(userID);
     const { productId } = req.body;
-    
+
     const user = await User.findById(userID);
 
     if (!user) {
@@ -27,8 +29,6 @@ module.exports = {
       currency: "brl",
       automatic_payment_methods: { enabled: true },
     });
-
-
 
     return res.status(200).send({ client_secret: paymentIntent.client_secret });
   },
@@ -47,23 +47,25 @@ module.exports = {
     const price = product.price * 100;
 
     const session = await stripe.checkout.sessions.create({
-      line_items: {
-        price_data: {
-          currency: "brl",
-          product_data: {
-            name: product.title,
-            images: [product.image],
+      line_items: [
+        {
+          price_data: {
+            currency: "brl",
+            product_data: {
+              name: product.title,
+            },
+            unit_amount: price,
           },
-          unit_amount: price,
-        }
-      },
-      mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}?success=true`,
-      cancel_url: `${process.env.FRONTEND_URL}?canceled=true`,
+          quantity: 5
+        },
+      ],
+      mode: "payment",
+      success_url: `${FRONTEND_URL}?success=true`,
+      cancel_url: `${FRONTEND_URL}?canceled=true`,
     });
-  
-    res.redirect(303, session.url);
-  }
+
+    res.status(200).send({ redirectURL: session.url });
+  },
   // async index(req, res){
   //   const posts = await Post.find().populate("author").sort("-createdAt");;
 
