@@ -7,13 +7,17 @@ const User = require("../Models/User");
 
 module.exports = {
   async store(req, res, next) {
-    if (!req.file) {
-      return res.status(400).send({ error: "No file to be uploaded." });
+
+    let imageName = undefined;
+
+    if (req.file) {
+      const { key } = req.file;
+
+      imageName = key;
     }
 
     const { userID } = req;
     const { title, content, hashtags } = req.body;
-    const { key } = req.file;
 
     const user = await User.findById(userID);
 
@@ -25,7 +29,7 @@ module.exports = {
       title,
       content,
       hashtags,
-      image: `${process.env.APP_URL}/files/${key}`,
+      image: imageName !== undefined ? `${process.env.APP_URL}/files/${key}` : null,
       author: userID,
     });
 

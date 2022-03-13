@@ -13,17 +13,11 @@ const User = require("../Models/User");
 
 module.exports = {
   async store(req, res) {
-    const {
-      name,
-      email,
-      password
-    } = req.body;
+    const { name, email, password } = req.body;
 
     const username = email.split("@")[0];
 
-    if (
-      (await User.findOne({ email }) || await User.findOne({ username }))
-    ) {
+    if ((await User.findOne({ email })) || (await User.findOne({ username }))) {
       return res.status(409).send({
         field: "email",
         message: "Já existe um usuário com esse e-mail ou nome de usuário",
@@ -31,7 +25,6 @@ module.exports = {
     }
 
     try {
-
       const validationToken = crypto.randomBytes(35).toString("hex");
 
       const newUser = await User.create({
@@ -39,7 +32,7 @@ module.exports = {
         name,
         email,
         password,
-        validationToken
+        validationToken,
       });
 
       const id = newUser.id;
@@ -81,13 +74,12 @@ module.exports = {
     const id = user.id;
     // var privateKey = fs.readFileSync(process.env.PRIVATE, "utf8");
     const token = jwt.sign({ id }, authConfig, {
-      expiresIn: process.env.EXPIRES_IN || '1d',
+      expiresIn: process.env.EXPIRES_IN || "1d",
     });
 
     return res.send({
-      userId: user.id,
-      name: user.name,
-      token: token,
+      user,
+      token,
     });
   },
   async show(req, res) {
