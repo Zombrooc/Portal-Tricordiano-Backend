@@ -56,7 +56,7 @@ module.exports = {
             },
             unit_amount: price,
           },
-          quantity: 5
+          quantity: 1
         },
       ],
       mode: "payment",
