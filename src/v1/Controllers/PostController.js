@@ -29,7 +29,7 @@ module.exports = {
       title,
       content,
       hashtags,
-      image: imageName !== undefined ? `${process.env.APP_URL}/files/${key}` : null,
+      image: imageName !== undefined ? `${process.env.APP_URL}/files/${imageName}` : null,
       author: userID,
     });
 
