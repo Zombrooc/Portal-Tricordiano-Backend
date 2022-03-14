@@ -13,10 +13,7 @@ const io = require("socket.io")(server);
 
 app.use(cookieParser());
 app.use(helmet());
-app.use(cors({
-  origin: '*',
-  methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH']
-}));
+app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(
@@ -40,12 +37,6 @@ app.use((req, res, next) => {
   req.io = io;
   next();
 });
-
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "true");
-
-  next()
-}) 
 
 app.use("/api/v1", require("./v1/Routes"));
 
