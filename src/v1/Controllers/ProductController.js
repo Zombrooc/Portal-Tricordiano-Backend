@@ -3,8 +3,13 @@ const User = require("../Models/User");
 
 const routes = {
   async store(req, res, next) {
-    if (!req.file) {
-      return res.status(400).send({ error: "No file to be uploaded." });
+
+    let imageURL = undefined;
+
+    if (req.file) {
+      const { location: url = "" } = req.file;
+
+      imageURL = url;
     }
 
     const { userID } = req;
@@ -13,8 +18,6 @@ const routes = {
       description,
       price
     } = req.body;
-
-    const { key } = req.file;
 
     const user = await User.findById(userID);
 
@@ -26,7 +29,7 @@ const routes = {
       title,
       description,
       price,
-      image: `${process.env.APP_URL}/files/${key}`,
+      image: imageURL,
       author: userID,
     });
 

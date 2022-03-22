@@ -8,12 +8,12 @@ const User = require("../Models/User");
 module.exports = {
   async store(req, res, next) {
 
-    let imageName = undefined;
+    let imageURL = undefined;
 
     if (req.file) {
-      const { key } = req.file;
+      const { location: url = "" } = req.file;
 
-      imageName = key;
+      imageURL = url;
     }
 
     const { userID } = req;
@@ -29,7 +29,7 @@ module.exports = {
       title,
       content,
       hashtags,
-      image: imageName !== undefined ? `${process.env.APP_URL}/files/${imageName}` : null,
+      image: imageURL,
       author: userID,
     });
 

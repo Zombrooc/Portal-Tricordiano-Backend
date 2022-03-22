@@ -11,7 +11,6 @@ module.exports = {
   async clientSecret(req, res, next) {
     const { userID } = req;
 
-    console.log(userID);
     const { productId } = req.body;
 
     const user = await User.findById(userID);
