@@ -1,5 +1,6 @@
 const multer = require('multer');
 const express = require('express');
+const asyncHandler = require('express-async-handler');
 
 const PropertyController = require('../Controllers/PropertyController');
 const authMiddleware = require('../Middlewares/authMiddleware');
@@ -10,7 +11,7 @@ const upload = multer(uploadConfig);
 
 const routes = express.Router();
 
-routes.post('/', authMiddleware, upload.array('image'), PropertyController.store);
+routes.post('/', authMiddleware, upload.array('image'), asyncHandler(PropertyController.store));
 // routes.get('/', PropertyController.index);
 // routes.get('/:id', PropertyController.show);
 // routes.post('/:id/like', authMiddleware, PropertyController.like);

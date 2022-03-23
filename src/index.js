@@ -40,6 +40,19 @@ app.use((req, res, next) => {
 
 app.use("/api/v1", require("./v1/Routes"));
 
+app.use((error, req, res, next) => {
+  if (error.status) {
+    res.status(error.status);
+  } else {
+    res.status(500);
+  }
+
+  res.json({
+    message: error.message,
+    stack: process.env.NODE_ENV === 'production' ? '🥞' : error.stack,
+  });
+});
+
 const PORT = process.env.PORT || 3333;
 
 server.listen(PORT, () => {

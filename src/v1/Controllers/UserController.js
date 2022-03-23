@@ -3,6 +3,7 @@ const { compareSync } = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const fs = require("fs");
+const createError = require('http-errors')
 
 const validateCPF = require("../services/cpfUtils");
 const ageCalc = require("../services/birthDateUtils");
@@ -12,16 +13,15 @@ const authConfig = process.env.SECRET;
 const User = require("../Models/User");
 
 module.exports = {
-  async store(req, res) {
+
+  async store(req, res, next) {
     const { name, email, password } = req.body;
 
     const username = email.split("@")[0];
 
+
     if ((await User.findOne({ email })) || (await User.findOne({ username }))) {
-      return res.status(409).send({
-        field: "email",
-        message: "Já existe um usuário com esse e-mail ou nome de usuário",
-      });
+      throw createError(400, "Esse usuário já existe.");
     }
 
     try {
@@ -49,7 +49,7 @@ module.exports = {
         token: token,
       });
     } catch (error) {
-      return res.send(error);
+      next(error);
     }
   },
   async authenticate(req, res) {

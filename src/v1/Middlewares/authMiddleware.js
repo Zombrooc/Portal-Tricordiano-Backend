@@ -1,36 +1,38 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
+const createError = require('http-errors')
+const asyncHandler = require("express-async-handler");
 
 const authToken = process.env.SECRET;
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = asyncHandler( async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).send({ error: "Nenhum token fornecido" });
+    throw createError(401, "Nenhum token fornecido");
   }
 
   const parts = authHeader.split(" ");
 
   if (parts.length !== 2) {
-    return res.status(401).send({ error: "Token Error" });
+    throw createError(401, "Token error");
   }
 
   const [scheme, token] = parts;
 
   if (!/^Bearer$/i.test(scheme)) {
-    return res.status(401).send({ error: "Token não formatado" });
+    throw createError(401, "Token não formatado");
   }
 
   jwt.verify(token, authToken, function (err, decoded) {
     if (err) {
-      return res.status(401).send({ error: "Token Invalido" });
+      throw createError(401, "Token Invalido");
     }
 
     req.userID = decoded.id;
     return next();
   });
-};
+});
 
 module.exports = authMiddleware;
