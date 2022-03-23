@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
       },
       message: "Email inválido",
     },
+    select: false,
   },
   password: {
     type: String,
@@ -38,10 +39,12 @@ const userSchema = new mongoose.Schema({
   },
   validationToken: {
     type: String,
+    select: false,
   },
   confirmed: {
     type: Boolean,
     default: false,
+    select: false,
   },
   isAdmin: {
     type: Boolean,
@@ -52,10 +55,12 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
     immutable: true,
+    select: false,
   },
   updatedAt: {
     type: Date,
     default: Date.now,
+    select: false,
   },
 });
 
