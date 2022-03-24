@@ -3,21 +3,16 @@ const User = require("../Models/User");
 
 const routes = {
   async store(req, res, next) {
-
     let imageURL = undefined;
 
     if (req.file) {
-      const { location: url = "" } = req.file;
+      const { transforms: images, path } = req.file;
 
-      imageURL = url;
+      imageURL = images[0].location;
     }
 
     const { userID } = req;
-    const {
-      title,
-      description,
-      price
-    } = req.body;
+    const { title, description, price } = req.body;
 
     const user = await User.findById(userID);
 

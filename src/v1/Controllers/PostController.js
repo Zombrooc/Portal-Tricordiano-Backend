@@ -7,13 +7,13 @@ const User = require("../Models/User");
 
 module.exports = {
   async store(req, res, next) {
-
     let imageURL = undefined;
 
     if (req.file) {
-      const { location: url = "" } = req.file;
 
-      imageURL = url;
+      const { transforms: images, path } = req.file;
+    
+      imageURL = images[0].location;
     }
 
     const { userID } = req;
@@ -35,8 +35,8 @@ module.exports = {
 
     return res.status(200).send(newPost);
   },
-  async index(req, res){
-    const posts = await Post.find().populate("author").sort("-createdAt");;
+  async index(req, res) {
+    const posts = await Post.find().populate("author").sort("-createdAt");
 
     return res.status(200).send(posts);
   },
@@ -56,7 +56,6 @@ module.exports = {
     return res.status(200).send();
   },
   async delete(req, res) {
-
     const { userID } = req;
 
     const post = await Post.findById(req.params.id);
@@ -67,15 +66,12 @@ module.exports = {
     }
   },
   async like(req, res) {
-    
     const post = await Post.findById(req.params.id);
 
-    post.likes+=1;
+    post.likes += 1;
 
     await post.save();
 
     return res.json(post);
-
-  }
-
+  },
 };

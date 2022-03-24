@@ -52,6 +52,7 @@ module.exports = {
             currency: "brl",
             product_data: {
               name: product.title,
+              images: [product.image],
             },
             unit_amount: price,
           },
