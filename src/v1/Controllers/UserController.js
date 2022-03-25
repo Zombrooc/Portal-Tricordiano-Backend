@@ -21,7 +21,7 @@ module.exports = {
 
 
     if ((await User.findOne({ email })) || (await User.findOne({ username }))) {
-      throw createError(400, "Esse usuário já existe.");
+      return res.status(400).send({ error: "Esse usuário já existe.", field: 'email' });
     }
 
     try {
@@ -58,17 +58,11 @@ module.exports = {
     const user = await User.findOne({ email }).select(`+password`);
 
     if (!user) {
-      return res.status(404).send({
-        message: "Nenhum usuário cadastrado com esse E-mail",
-        field: "email",
-      });
+      return res.status(400).send({ error: "Usuário não encontrado", field: 'email' });      
     }
 
     if (!(await compareSync(password, user.password))) {
-      return res.status(403).send({
-        message: "Senha incorreta",
-        field: "password",
-      });
+      return res.status(400).send({ error: "Senha incorreta", field: 'password' });
     }
 
     const id = user.id;
@@ -103,10 +97,8 @@ module.exports = {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).send({
-        field: "email",
-        message: "Nenhum usuário com esse e-mail foi encontrado",
-      });
+      // User not found response
+      return res.status(400).send({ error: "Usuário não encontrado" });
     }
 
     const token = crypto.randomBytes(35).toString("hex");
@@ -154,6 +146,11 @@ module.exports = {
 
     const user = await User.findById(userID);
 
+    if (user.confirmed) {
+      // User already confirmed response
+      return res.status(400).send({ error: "Usuário já confirmado" });
+    }
+
     await verificationEmail(user.name, user.email, async () => {
       const token = crypto.randomBytes(35).toString("hex");
 
@@ -166,16 +163,24 @@ module.exports = {
   async validateEmail(req, res) {
     const { token } = req.body;
 
-    const user = await User.findOne({ validationToken: token });
+    const user = await User.findOne({ validation_token: token });
 
-    if (!user) {
-      return res.status(404).send({
-        field: "token",
-        message: "Token inválido",
-      });
+    const { validation_token, confirmed } = user;
+
+    if (confirmed) {
+      // user already confirmed response
+      return res.status(400).send({ error: "Usuário já confirmado" });
     }
 
-    user.validationToken = null;
+    if (!user) {
+      return res.status(400).send({ error: "Código de validação não encontrado" });
+    }
+
+    if (token !== validation_token) {
+      return res.status(400).send({ error: "Código de validação inválido" });
+    }
+
+    user.validationToken = "";
     user.confirmed = true;
     await user.save();
 
