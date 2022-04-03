@@ -65,13 +65,30 @@ module.exports = {
       return res.status(200).send();
     }
   },
-  async like(req, res) {
-    const post = await Post.findById(req.params.id);
+  // async like(req, res) {
+  //   const post = await Post.findById(req.params.id);
 
-    post.likes += 1;
+  //   post.likes += 1;
+
+  //   await post.save();
+
+  //   return res.json(post);
+  // },
+  // Like a post
+  async like(req, res) {
+    const { userID } = req;
+    const { id } = req.params;
+
+    const post = await Post.findById(id);
+
+    if (post.likes.includes(userID)) {
+      return res.status(400).send({ error: "Post already liked" });
+    }
+
+    post.likes.push(userID);
 
     await post.save();
 
-    return res.json(post);
-  },
+    return res.status(200).send(post);
+  }
 };
