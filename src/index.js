@@ -6,11 +6,13 @@ const morgan = require("morgan");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const compression = require('compression')
 
 const app = express();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
 
+app.use(compression());
 app.use(cookieParser());
 app.use(helmet());
 app.use(cors());
@@ -23,7 +25,9 @@ app.use(
 );
 app.use(
   "/files",
-  express.static(path.resolve(__dirname, "..", "tmp", "uploads"))
+  express.static(path.resolve(__dirname, "..", "tmp", "uploads"), {
+    maxAge: "7d",
+  })
 );
 
 mongoose.connect(process.env.MONGO_URL, {
