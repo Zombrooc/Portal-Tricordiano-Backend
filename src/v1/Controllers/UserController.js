@@ -19,7 +19,6 @@ module.exports = {
 
     const username = email.split("@")[0];
 
-
     if ((await User.findOne({ email })) || (await User.findOne({ username }))) {
       return res.status(400).send({ error: "Esse usuário já existe.", field: 'email' });
     }
@@ -44,8 +43,7 @@ module.exports = {
       await verificationEmail(newUser.name, newUser.email, validationToken);
 
       return res.send({
-        userId: newUser.id,
-        name: newUser.name,
+        user: newUser,
         token: token,
       });
     } catch (error) {
