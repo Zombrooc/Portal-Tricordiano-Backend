@@ -15,7 +15,12 @@ const io = require("socket.io")(server);
 app.use(compression());
 app.use(cookieParser());
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  domains: [
+    "http://localhost:3000",
+    'https://portal.thesimpletech.com.br',
+  ]
+}));
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(
