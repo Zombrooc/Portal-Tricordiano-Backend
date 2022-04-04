@@ -43,6 +43,8 @@ module.exports = {
 
     const product = await Product.findById(productId);
 
+    console.log(product);
+
     const price = product.price * 100;
 
     const session = await stripe.checkout.sessions.create({

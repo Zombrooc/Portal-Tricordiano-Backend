@@ -31,7 +31,7 @@ const routes = {
     return res.status(200).send(newProduct);
   },
   async index(req, res) {
-    const products = await Product.find({}).sort("-createdAt");
+    const products = await Product.find({}).sort("-createdAt").populate('author');
     return res.send(products);
   },
   async show(req, res) {
