@@ -6,21 +6,21 @@ const morgan = require("morgan");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-const compression = require('compression')
 
 const app = express();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
 
-app.use(compression());
 app.use(cookieParser());
 app.use(helmet());
-app.use(cors({
-  domains: [
-    "http://localhost:3000",
-    'https://portal.thesimpletech.com.br',
-  ]
-}));
+app.use(
+  cors({
+    domains: [
+      "http://localhost:3000",
+      "https://portal.thesimpletech.com.br",
+    ],
+  })
+);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(
@@ -30,9 +30,7 @@ app.use(
 );
 app.use(
   "/files",
-  express.static(path.resolve(__dirname, "..", "tmp", "uploads"), {
-    maxAge: "7d",
-  })
+  express.static(path.resolve(__dirname, "..", "uploads"))
 );
 
 mongoose.connect(process.env.MONGO_URL, {
@@ -49,18 +47,18 @@ app.use((req, res, next) => {
 
 app.use("/api/v1", require("./v1/Routes"));
 
-// app.use((error, req, res, next) => {
-//   if (error.status) {
-//     res.status(error.status);
-//   } else {
-//     res.status(500);
-//   }
+app.use((error, req, res, next) => {
+  if (error.status) {
+    res.status(error.status);
+  } else {
+    res.status(500);
+  }
 
-//   res.json({
-//     message: error.message,
-//     stack: process.env.NODE_ENV === 'production' ? '🥞' : error.stack,
-//   });
-// });
+  res.json({
+    message: error.message,
+    stack: process.env.NODE_ENV === 'production' ? '🥞' : error.stack,
+  });
+});
 
 const PORT = process.env.PORT || 3333;
 

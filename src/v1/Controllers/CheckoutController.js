@@ -7,6 +7,8 @@ const Product = require("../Models/Product");
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
 module.exports = {
   async clientSecret(req, res, next) {
     const { userID } = req;
@@ -115,37 +117,24 @@ module.exports = {
     res.status(200).send({ redirectURL: session.url });
   },
   async webhook(req, res, next) {
-    const sig = req.headers["stripe-signature"];
 
-    let event;
-
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-      res.status(400).send(`Webhook Error: ${err.message}`);
-      return;
-    }
-
-    let session
+    const event = req.body;
     // Handle the event
     switch (event.type) {
-      case "checkout.session.async_payment_succeeded":
-        session = event.data.object;
-        
-        console.log(session)
-        break;
       case "checkout.session.completed":
-        session = event.data.object;
-        
-        console.log(session)
+        const paymentIntent = event.data.object;
+        console.log("PaymentIntent was successful!");
         break;
-      // ... handle other event types
+      case "payment_method.attached":
+        const paymentMethod = event.data.object;
+        console.log("PaymentMethod was attached to a Customer!");
+        break;
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
 
     // Return a 200 response to acknowledge receipt of the event
-    return res.status(200).send();
+    res.json({ received: true });
   },
 
   // async index(req, res){
