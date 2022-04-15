@@ -7,8 +7,6 @@ const Product = require("../Models/Product");
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
 module.exports = {
   async clientSecret(req, res, next) {
     const { userID } = req;
@@ -29,6 +27,7 @@ module.exports = {
       amount: price,
       currency: "brl",
       automatic_payment_methods: { enabled: true },
+      setup_future_usage: 'off_session',
     });
 
     return res.status(200).send({ client_secret: paymentIntent.client_secret });
@@ -117,18 +116,53 @@ module.exports = {
     res.status(200).send({ redirectURL: session.url });
   },
   async webhook(req, res, next) {
+    // const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const endpointSecret = "whsec_lBaDKgnqP1KxUUYkGzNcwstbyPsTT8c0";
+    var event = req.body;
+    var session;
+    var paymentIntent;
 
-    const event = req.body;
+    if (endpointSecret) {
+      const signature = req.headers["stripe-signature"];
+      try {
+        event = stripe.webhooks.constructEvent(
+          req.body,
+          signature,
+          endpointSecret
+        );
+      } catch (err) {
+        console.log(`⚠️  Webhook signature verification failed.`, err.message);
+        return res.status(400);
+      }
+    }
     // Handle the event
     switch (event.type) {
+      case "checkout.session.async_payment_failed":
+        session = event.data.object;
+        console.log(session);
+        // Then define and call a function to handle the event checkout.session.async_payment_failed
+        break;
+      case "checkout.session.async_payment_succeeded":
+        session = event.data.object;
+        console.log(session);
+        // Then define and call a function to handle the event checkout.session.async_payment_succeeded
+        break;
       case "checkout.session.completed":
-        const paymentIntent = event.data.object;
-        console.log("PaymentIntent was successful!");
+        session = event.data.object;
+        console.log(session);
+        // Then define and call a function to handle the event checkout.session.completed
         break;
-      case "payment_method.attached":
-        const paymentMethod = event.data.object;
-        console.log("PaymentMethod was attached to a Customer!");
+      case "payment_intent.processing":
+        paymentIntent = event.data.object;
+        console.log(paymentIntent);
+        // Then define and call a function to handle the event payment_intent.processing
         break;
+      case "payment_intent.succeeded":
+        paymentIntent = event.data.object;
+        console.log(paymentIntent);
+        // Then define and call a function to handle the event payment_intent.succeeded
+        break;
+      // ... handle other event types
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
@@ -136,47 +170,4 @@ module.exports = {
     // Return a 200 response to acknowledge receipt of the event
     res.json({ received: true });
   },
-
-  // async index(req, res){
-  //   const posts = await Post.find().populate("author").sort("-createdAt");;
-
-  //   return res.status(200).send(posts);
-  // },
-  // async show(req, res) {
-  //   const post = await Post.findById(req.params.id);
-
-  //   return res.status(200).send(post);
-  // },
-  // async update(req, res) {
-  //   const done = await Post.findByIdAndUpdate(req.params.id, {
-  //     $set: {
-  //       ...req.body,
-  //       updatedAt: new Date(),
-  //     },
-  //   });
-
-  //   return res.status(200).send();
-  // },
-  // async delete(req, res) {
-
-  //   const { userID } = req;
-
-  //   const post = await Post.findById(req.params.id);
-
-  //   if (userID === post.author) {
-  //     await Post.findByIdAndDelete(req.params.id);
-  //     return res.status(200).send();
-  //   }
-  // },
-  // async like(req, res) {
-
-  //   const post = await Post.findById(req.params.id);
-
-  //   post.likes+=1;
-
-  //   await post.save();
-
-  //   return res.json(post);
-
-  // }
 };

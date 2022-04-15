@@ -8,7 +8,7 @@ const routes = express.Router();
 
 routes.post('/clientSecret', authMiddleware, CheckoutController.clientSecret);
 routes.post('/createCheckoutSession', authMiddleware, CheckoutController.createCheckoutSession);
-routes.post('/paymentConfirmed', bodyParser.raw(), CheckoutController.webhook);
+routes.post('/webhook', bodyParser.raw(), CheckoutController.webhook);
 // routes.get('/:id', CheckoutController.show);
 // routes.post('/:id/like', authMiddleware, CheckoutController.like);
 // routes.delete('/:id', authMiddleware, CheckoutController.delete);
