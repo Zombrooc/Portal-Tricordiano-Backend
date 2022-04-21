@@ -84,79 +84,77 @@ module.exports = {
           expires_after_days: 7,
         },
       },
-      billing_address_collection: "required",
       mode: "payment",
       success_url: `${FRONTEND_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       // success_url: `${FRONTEND_URL}/payment?success=true`,
       cancel_url: `${FRONTEND_URL}/payment?canceled=true`,
       submit_type: "pay",
       locale: "pt-BR",
-      shipping_address_collection: {
-        allowed_countries: ["BR"],
-      },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            fixed_amount: {
-              amount: 0,
-              currency: "brl",
-            },
-            display_name: "Entrega Grátis",
-            // Delivers between 5-7 business days
-            delivery_estimate: {
-              minimum: {
-                unit: "business_day",
-                value: 5,
-              },
-              maximum: {
-                unit: "business_day",
-                value: 7,
-              },
-            },
-          },
-        },
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            fixed_amount: {
-              amount: 8 * 100,
-              currency: "brl",
-            },
-            display_name: "Delivery (Motoboy)",
-            // Delivers in exactly 1 business day
-            delivery_estimate: {
-              minimum: {
-                unit: "business_day",
-                value: 1,
-              },
-              maximum: {
-                unit: "business_day",
-                value: 3,
-              },
-            },
-          },
-        },
-      ],
+      // shipping_address_collection: {
+      //   allowed_countries: ["BR"],
+      // },
+      // shipping_options: [
+      //   {
+      //     shipping_rate_data: {
+      //       type: "fixed_amount",
+      //       fixed_amount: {
+      //         amount: 0,
+      //         currency: "brl",
+      //       },
+      //       display_name: "Entrega Grátis",
+      //       // Delivers between 5-7 business days
+      //       delivery_estimate: {
+      //         minimum: {
+      //           unit: "business_day",
+      //           value: 5,
+      //         },
+      //         maximum: {
+      //           unit: "business_day",
+      //           value: 7,
+      //         },
+      //       },
+      //     },
+      //   },
+      //   {
+      //     shipping_rate_data: {
+      //       type: "fixed_amount",
+      //       fixed_amount: {
+      //         amount: 8 * 100,
+      //         currency: "brl",
+      //       },
+      //       display_name: "Delivery (Motoboy)",
+      //       // Delivers in exactly 1 business day
+      //       delivery_estimate: {
+      //         minimum: {
+      //           unit: "business_day",
+      //           value: 1,
+      //         },
+      //         maximum: {
+      //           unit: "business_day",
+      //           value: 3,
+      //         },
+      //       },
+      //     },
+      //   },
+      // ],
     });
 
     res.status(200).send({ redirectURL: session.url });
   },
   async webhook(req, res, next) {
     // const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    const endpointSecret = "whsec_lBaDKgnqP1KxUUYkGzNcwstbyPsTT8c0";
-    var event = req.body;
-    var session;
-    var paymentIntent;
+
+    const io = req.io;
+
+    const endpointSecret = `${process.env.STRIPE_WEBHOOK_SECRET}`;
+    let event;
+    let session;
+    let paymentIntent;
 
     if (endpointSecret) {
-      const signature = req.headers["stripe-signature"];
+      const sig = req.headers["stripe-signature"];
       try {
-        event = stripe.webhooks.constructEvent(
-          req.body,
-          signature,
-          endpointSecret
-        );
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
       } catch (err) {
         console.log(`⚠️  Webhook signature verification failed.`, err.message);
         return res.status(400);
@@ -164,35 +162,34 @@ module.exports = {
     }
     // Handle the event
     switch (event.type) {
-      case "checkout.session.async_payment_failed":
-        session = event.data.object;
-        console.log(session);
-        // Then define and call a function to handle the event checkout.session.async_payment_failed
-        break;
       case "checkout.session.async_payment_succeeded":
         session = event.data.object;
         console.log(session);
+        io.emit('checkout.session.async_payment_succeeded', session);
         // Then define and call a function to handle the event checkout.session.async_payment_succeeded
         break;
       case "checkout.session.completed":
         session = event.data.object;
         console.log(session);
+        io.emit('checkout.session.completed', session);
         // Then define and call a function to handle the event checkout.session.completed
         break;
       case "payment_intent.created":
         paymentIntent = event.data.object;
         console.log(paymentIntent);
-        return res.send(paymentIntent)
+        io.emit('payment_intent.created', paymentIntent);
         // Then define and call a function to handle the event payment_intent.created
         break;
       case "payment_intent.processing":
         paymentIntent = event.data.object;
         console.log(paymentIntent);
+        io.emit('payment_intent.processing', paymentIntent);
         // Then define and call a function to handle the event payment_intent.processing
         break;
       case "payment_intent.succeeded":
         paymentIntent = event.data.object;
         console.log(paymentIntent);
+        io.emit('payment_intent.succeeded', paymentIntent);
         // Then define and call a function to handle the event payment_intent.succeeded
         break;
       // ... handle other event types
