@@ -26,15 +26,26 @@ module.exports = {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: price,
       currency: "brl",
-      automatic_payment_methods: { enabled: true },
-      setup_future_usage: 'off_session',
+      payment_method_types: ["card", "boleto"],
+      payment_method_options: {
+        card: {
+          request_three_d_secure: "automatic",
+          installments: {
+            enabled: true,
+          },
+        },
+        boleto: {
+          expires_after_days: 7,
+          setup_future_usage: "on_session",
+        },
+      },
     });
 
-    return res.status(200).send({ client_secret: paymentIntent.client_secret });
+    return res.status(200).send({ paymentIntent });
   },
   async createCheckoutSession(req, res, next) {
     const { userID } = req;
-    const { productId, quantity } = req.body;
+    const { productId } = req.body;
 
     const user = await User.findById(userID);
 
@@ -47,6 +58,9 @@ module.exports = {
     const price = product.price * 100;
 
     const session = await stripe.checkout.sessions.create({
+      customer_email: user.email,
+      payment_method_types: ["card", "boleto"],
+      customer_creation: "if_required",
       line_items: [
         {
           price_data: {
@@ -57,13 +71,26 @@ module.exports = {
             },
             unit_amount: price,
           },
-          quantity: quantity ? quantity : 1,
+          adjustable_quantity: {
+            enabled: true,
+            minimum: 1,
+            maximum: 10,
+          },
+          quantity: 1,
         },
       ],
+      payment_method_options: {
+        boleto: {
+          expires_after_days: 7,
+        },
+      },
+      billing_address_collection: "required",
       mode: "payment",
-      success_url: `${FRONTEND_URL}/payment?success=true`,
+      success_url: `${FRONTEND_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      // success_url: `${FRONTEND_URL}/payment?success=true`,
       cancel_url: `${FRONTEND_URL}/payment?canceled=true`,
-
+      submit_type: "pay",
+      locale: "pt-BR",
       shipping_address_collection: {
         allowed_countries: ["BR"],
       },
@@ -151,6 +178,12 @@ module.exports = {
         session = event.data.object;
         console.log(session);
         // Then define and call a function to handle the event checkout.session.completed
+        break;
+      case "payment_intent.created":
+        paymentIntent = event.data.object;
+        console.log(paymentIntent);
+        return res.send(paymentIntent)
+        // Then define and call a function to handle the event payment_intent.created
         break;
       case "payment_intent.processing":
         paymentIntent = event.data.object;

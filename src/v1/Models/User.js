@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
+const validateCPF = require("../services/cpfUtils");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -22,6 +23,18 @@ const userSchema = new mongoose.Schema({
         );
       },
       message: "Email inválido",
+    },
+    select: false,
+  },
+  cpf: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator(value) {
+        return validateCPF(value);
+      },
+      message: "CPF inválido",
     },
     select: false,
   },

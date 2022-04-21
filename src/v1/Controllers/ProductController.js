@@ -32,14 +32,14 @@ const routes = {
   },
   async index(req, res) {
     const products = await Product.find({}).sort("-createdAt").populate('author');
-    return res.send(products);
+    return res.status(200).send(products);
   },
   async show(req, res) {
     const { productID } = req.params;
 
     const productDetails = await Product.findById(productID);
 
-    return res.send(productDetails);
+    return res.status(200).send(productDetails);
   },
   async delete(req, res) {
     const { productId } = req.params;

@@ -3,24 +3,39 @@ const { compareSync } = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const fs = require("fs");
-const createError = require('http-errors')
+// const createError = require("http-errors");
 
 const validateCPF = require("../services/cpfUtils");
-const ageCalc = require("../services/birthDateUtils");
+// const ageCalc = require("../services/birthDateUtils");
 const { verificationEmail, forgotPassword } = require("../services/mailing");
 // const FileUtils = require('../services/fileUtils');
 const authConfig = process.env.SECRET;
 const User = require("../Models/User");
 
 module.exports = {
-
   async store(req, res, next) {
-    const { name, email, password } = req.body;
+    const { name, email, password, cpf } = req.body;
+
+    console.log(cpf);
 
     const username = email.split("@")[0];
 
     if ((await User.findOne({ email })) || (await User.findOne({ username }))) {
-      return res.status(400).send({ error: "Esse usuário já existe.", field: 'email' });
+      return res
+        .status(400)
+        .send({ error: "Esse usuário já existe.", field: "email" });
+    }
+
+    if (await User.findOne({ cpf })) {
+      return res
+        .status(400)
+        .send({ error: "Esse CPF já existe.", field: "cpf" });
+    }
+
+    if (!validateCPF(cpf)) {
+      return res
+        .status(400)
+        .send({ error: "Esse CPF não é válido.", field: "cpf" });
     }
 
     try {
@@ -30,6 +45,7 @@ module.exports = {
         username,
         name,
         email,
+        cpf,
         password,
         validationToken,
       });
@@ -56,11 +72,15 @@ module.exports = {
     const user = await User.findOne({ email }).select(`+password`);
 
     if (!user) {
-      return res.status(400).send({ error: "Usuário não encontrado", field: 'email' });      
+      return res
+        .status(400)
+        .send({ error: "Usuário não encontrado", field: "email" });
     }
 
     if (!(await compareSync(password, user.password))) {
-      return res.status(400).send({ error: "Senha incorreta", field: 'password' });
+      return res
+        .status(400)
+        .send({ error: "Senha incorreta", field: "password" });
     }
 
     const id = user.id;
@@ -171,7 +191,9 @@ module.exports = {
     }
 
     if (!user) {
-      return res.status(400).send({ error: "Código de validação não encontrado" });
+      return res
+        .status(400)
+        .send({ error: "Código de validação não encontrado" });
     }
 
     if (token !== validation_token) {
