@@ -27,21 +27,21 @@ module.exports = {
       amount: price,
       currency: "brl",
       payment_method_types: ["card", "boleto"],
-      payment_method_options: {
-        card: {
-          request_three_d_secure: "automatic",
-          installments: {
-            enabled: true,
-          },
-        },
-        boleto: {
-          expires_after_days: 7,
-          setup_future_usage: "on_session",
-        },
-      },
+      // payment_method_options: {
+      //   card: {
+      //     request_three_d_secure: "automatic",
+      //     installments: {
+      //       enabled: true,
+      //     },
+      //   },
+      //   boleto: {
+      //     expires_after_days: 7,
+      //     setup_future_usage: "on_session",
+      //   },
+      // },
     });
 
-    return res.status(200).send({ paymentIntent });
+    return res.status(200).send({ clientSecret: paymentIntent.client_secret });
   },
   async createCheckoutSession(req, res, next) {
     const { userID } = req;
