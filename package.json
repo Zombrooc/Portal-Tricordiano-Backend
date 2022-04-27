@@ -30,6 +30,7 @@
     "multer-s3": "^2.10.0",
     "multer-s3-transform": "^2.10.3",
     "multer-sharp-s3": "^0.2.5",
+    "next": "^12.1.5",
     "nodemailer": "^6.4.11",
     "nodemailer-express-handlebars": "^4.0.0",
     "nodemailer-sendgrid-transport": "^0.2.0",

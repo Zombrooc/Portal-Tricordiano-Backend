@@ -154,7 +154,7 @@ module.exports = {
     if (endpointSecret) {
       const sig = req.headers["stripe-signature"];
       try {
-        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        event = stripe.webhooks.constructEvent(req.rawBody, sig, endpointSecret);
       } catch (err) {
         console.log(`⚠️  Webhook signature verification failed.`, err.message);
         return res.status(400);

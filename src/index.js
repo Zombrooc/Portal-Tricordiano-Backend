@@ -6,10 +6,21 @@ const morgan = require("morgan");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const next = require('next');
 
 const app = express();
 const server = require("http").Server(app);
-const io = require("socket.io")(server);
+
+const io = require("socket.io")(server, {
+  cors: {
+    origin: [
+      "http://localhost:3000",
+      'http://localhost:3333',
+      "https://portal.thesimpletech.com.br",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  }
+});
 
 app.use(cookieParser());
 app.use(helmet());
@@ -25,7 +36,7 @@ app.use(morgan("dev"));
 app.use(
   express.json({
     verify: function (req, res, buf) {
-      if (req.originalUrl.startsWith('/webhook')) {
+      if (req.originalUrl.startsWith('/api/v1/checkout/webhook')) {
         req.rawBody = buf.toString();
       }
     },
