@@ -10,9 +10,8 @@ module.exports = {
     let imageURL = undefined;
 
     if (req.file) {
-
       const { transforms: images, path } = req.file;
-    
+
       imageURL = images[0].location;
     }
 
@@ -36,9 +35,22 @@ module.exports = {
     return res.status(200).send(newPost);
   },
   async index(req, res) {
-    const posts = await Post.find().populate("author").sort("-createdAt");
+    const { page = 1, limit = 10 } = req.query;
 
-    return res.status(200).send(posts);
+    const posts = await Post.find()
+      .populate("author")
+      .sort("-createdAt")
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .exec();
+
+    const count = await Post.countDocuments();
+
+    return res.status(200).send({
+      posts,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    });
   },
   async show(req, res) {
     const post = await Post.findById(req.params.id);
@@ -82,7 +94,8 @@ module.exports = {
     const post = await Post.findById(id);
 
     if (post.likes.includes(userID)) {
-      return res.status(400).send({ error: "Post already liked" });
+      post.likes.filter((like) => like !== userID);
+      return res.status(200).send(post);
     }
 
     post.likes.push(userID);
@@ -90,5 +103,5 @@ module.exports = {
     await post.save();
 
     return res.status(200).send(post);
-  }
+  },
 };
